@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <dexprotector>
     <verbose>true</verbose>
+    <licenseFile>../tools/dexprotector.licel</licenseFile>
     <optimize>false</optimize>
-    <signMode>debug</signMode>	
-    <stringEncryption/>
-    <classEncryption/>
-    <hideAccess/>
+    <signMode>release</signMode>
     <resourceEncryption nameObfucation="on"><assets/><res/></resourceEncryption>
     <detect>
     	<trace>9</trace>
-      	<root>
-        	<positiveCheckCallback>com.dexprotector.detector.envchecks.MainActivity.positiveRootCheck</positiveCheckCallback>
-        	<negativeCheckCallback>com.dexprotector.detector.envchecks.MainActivity.negativeRootCheck</negativeCheckCallback>
-        	<probeMethod>com.dexprotector.detector.envchecks.MainActivity.doProbe</probeMethod>
-    	</root>
+		<root>
+			<positiveCheckCallback>com.dexprotector.detector.envchecks.MainActivity.positiveRootCheck</positiveCheckCallback>
+			<negativeCheckCallback>com.dexprotector.detector.envchecks.MainActivity.negativeRootCheck</negativeCheckCallback>
+			<probeMethod>com.dexprotector.detector.envchecks.MainActivity.doProbe</probeMethod>
+		</root>
       	<debug>
         	<positiveCheckCallback>com.dexprotector.detector.envchecks.MainActivity.positiveDebugCheck</positiveCheckCallback>
         	<negativeCheckCallback>com.dexprotector.detector.envchecks.MainActivity.negativeDebugCheck</negativeCheckCallback>
@@ -50,4 +48,3 @@
     </detect>
 
 </dexprotector>
-

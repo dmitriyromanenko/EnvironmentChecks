@@ -2,44 +2,55 @@ package com.dexprotector.detector.envchecks;
 
 import android.app.Activity;
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
-import java.util.BitSet;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
 
 public class MainActivity extends Activity {
 
-    enum ENV_CHECK {
-        ROOT(0), DEBUG(1), EMULATOR(2), XPOSED(3), CUSTOM_FIRMWARE (4), INTEGRITY (5), WIRELESS_SECURITY(6);
-
-        private final int idx;
-
-        ENV_CHECK(final int newIdx) {
-            idx = newIdx;
-        }
-
-        public int getValue() {
-            return idx;
-        }
-    }
-
-    static BitSet envChecks = new BitSet();
+    private static List<String> checkResults = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        TextView tv = (TextView) findViewById(R.id.text);
+        TextView tv = findViewById(R.id.text);
+        checkResults.clear();
         doProbe(this);
-        tv.setText("DeviceId: " + Build.SERIAL + "\n" +
-                "Root detection result: " + envChecks.get(ENV_CHECK.ROOT.getValue()) + "\n" +
-                "Debug detection result: " + envChecks.get(ENV_CHECK.DEBUG.getValue()) + "\n" +
-                "Emulator detection result: " + envChecks.get(ENV_CHECK.EMULATOR.getValue()) + "\n" +
-                "Xposed detection result: " + envChecks.get(ENV_CHECK.XPOSED.getValue()) + "\n" +
-                "Custom firmware detection result: " + envChecks.get(ENV_CHECK.CUSTOM_FIRMWARE.getValue()) + "\n" +
-                "Integrity detection result: " + envChecks.get(ENV_CHECK.INTEGRITY.getValue()) + "\n" +
-                "Wireless security check result: " + envChecks.get(ENV_CHECK.WIRELESS_SECURITY.getValue()) + "\n"); 
+        StringBuilder resultBuilder = new StringBuilder();
+        for (String checkResult : checkResults) {
+            resultBuilder.append(checkResult).append('\n');
+        }
+
+        tv.setText(resultBuilder.toString());
+    }
+
+    private static synchronized void logCheckResult(String name, Object data, boolean positive) {
+        StringBuilder checkResult = new StringBuilder(name).append('\n')
+                .append("Is positive: ").append(positive).append('\n')
+                .append("Type: ").append( data.getClass().getCanonicalName()).append('\n')
+                .append("toString() value: ").append( data.toString()).append('\n');
+
+        if (data instanceof Properties) {
+            Properties properties = (Properties) data;
+            Enumeration<?> propertyNames = properties.propertyNames();
+            while (propertyNames.hasMoreElements()) {
+                String propName = (String) propertyNames.nextElement();
+                checkResult.append("getProperty(").append(propName).append(")")
+                        .append('=').append(properties.getProperty(propName)).append('\n');
+
+                checkResult.append("get(").append(propName).append(")")
+                        .append('=').append(properties.get(propName)).append('\n');
+            }
+        }
+
+        checkResults.add(checkResult.toString());
+        Log.e("MainActivity", checkResult.toString());
     }
 
     public void doProbe(Context ctx) {
@@ -47,87 +58,58 @@ public class MainActivity extends Activity {
     }
 
     public static void positiveRootCheck(Object data) {
-        System.out.println("positiveRootCheck");
-        System.out.println("data:" + data);
-        envChecks.set(ENV_CHECK.ROOT.getValue());
+        logCheckResult("Root", data, true);
     }
 
     public static void negativeRootCheck(Object data) {
-        System.out.println("negativeRootCheck");
-        System.out.println("data:" + data);
-        envChecks.clear(ENV_CHECK.ROOT.getValue());
+        logCheckResult("Root", data, false);
     }
 
     public static void positiveDebugCheck(Object data) {
-        System.out.println("positiveDebugCheck");
-        System.out.println("data:" + data);
-        envChecks.set(ENV_CHECK.DEBUG.getValue());
+        logCheckResult("Debug", data, true);
     }
 
     public static void negativeDebugCheck(Object data) {
-        System.out.println("negativeDebugCheck");
-        System.out.println("data:" + data);
-        envChecks.clear(ENV_CHECK.DEBUG.getValue());
+        logCheckResult("Debug", data, false);
     }
 
     public static void positiveEmulatorCheck(Object data) {
-        System.out.println("positiveEmulatorCheck");
-        System.out.println("data:" + data);
-        envChecks.set(ENV_CHECK.EMULATOR.getValue());
+        logCheckResult("Emulator", data, true);
     }
 
     public static void negativeEmulatorCheck(Object data) {
-        System.out.println("negativeEmulatorCheck");
-        System.out.println("data:" + data);
-        envChecks.clear(ENV_CHECK.EMULATOR.getValue());
+        logCheckResult("Emulator", data, false);
     }
 
     public static void positiveXposedCheck(Object data) {
-        System.out.println("positiveXposedCheck");
-        System.out.println("data:" + data);
-        envChecks.set(ENV_CHECK.XPOSED.getValue());
+        logCheckResult("Xposed", data, true);
     }
 
     public static void negativeXposedCheck(Object data) {
-        System.out.println("negativeXposedCheck");
-        System.out.println("data:" + data);
-        envChecks.clear(ENV_CHECK.XPOSED.getValue());
+        logCheckResult("Xposed", data, false);
     }
 
     public static void positiveCustomFirmwareCheck(Object data) {
-        System.out.println("positiveCustomFirmwareCheck");
-        System.out.println("data:" + data);
-        envChecks.set(ENV_CHECK.CUSTOM_FIRMWARE.getValue());
+        logCheckResult("CustomFirmware", data, true);
     }
 
     public static void negativeCustomFirmwareCheck(Object data) {
-        System.out.println("negativeCustomFirmwareCheck");
-        System.out.println("data:" + data);
-        envChecks.clear(ENV_CHECK.CUSTOM_FIRMWARE.getValue());
+        logCheckResult("CustomFirmware", data, false);
     }
 
     public static void positiveIntegrityCheck(Object data) {
-        System.out.println("positiveIntegrityCheck");
-        System.out.println("data:" + data);
-        envChecks.set(ENV_CHECK.INTEGRITY.getValue());
+        logCheckResult("Integrity", data, true);
     }
 
     public static void negativeIntegrityCheck(Object data) {
-        System.out.println("negativeIntegrityCheck");
-        System.out.println("data:" + data);
-        envChecks.clear(ENV_CHECK.INTEGRITY.getValue());
+        logCheckResult("Integrity", data, false);
     }
 
     public static void positiveWirelessSecurityCheck(Object data) {
-        System.out.println("positiveWirelessSecurityCheck");
-        System.out.println("data:" + data);
-        envChecks.set(ENV_CHECK.WIRELESS_SECURITY.getValue());
+        logCheckResult("WirelessSecurity", data, true);
     }
 
     public static void negativeWirelessSecurityCheck(Object data) {
-        System.out.println("negativeWirelessSecurityCheck");
-        System.out.println("data:" + data);
-        envChecks.clear(ENV_CHECK.WIRELESS_SECURITY.getValue());
+        logCheckResult("WirelessSecurity", data, false);
     }
-
 }
